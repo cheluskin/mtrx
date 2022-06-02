@@ -1,5 +1,7 @@
 #!/bin/bash
 set -e
+export DEBIAN_FRONTEND=noninteractive
+sudo apt install dnsutils iputils-ping -yq
 
 if [[ $# -eq 0 ]] ; then
     echo 'Domain not present'
@@ -21,11 +23,18 @@ sudo wget -O /usr/share/keyrings/matrix-org-archive-keyring.gpg https://packages
 echo "deb [signed-by=/usr/share/keyrings/matrix-org-archive-keyring.gpg] https://packages.matrix.org/debian/ $(lsb_release -cs) main" |
     sudo tee /etc/apt/sources.list.d/matrix-org.list
 sudo apt update -y
-sudo apt install -y matrix-synapse-py3 libpq5 nginx
+sudo apt install -y matrix-synapse-py3 libpq5 nginx cron socat
 
 curl https://get.acme.sh | sh
+export LE_WORKING_DIR="/root/.acme.sh"
+alias acme.sh="/root/.acme.sh/acme.sh"
+shopt -s expand_aliases
 acme.sh  --register-account  -m test@gmail.com --server zerossl
-acme.sh --issue --standalone -d $DOMAIN
+sudo iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+sudo iptables -I INPUT -p tcp -m tcp --dport 443 -j ACCEPT
+sudo service iptables save
+
+acme.sh --issue -d $DOMAIN --webroot /var/www/html
 mkdir -p /etc/mtrxcerts/
 acme.sh --install-cert -d $DOMAIN --key-file /etc/mtrxcerts/key.pem --fullchain-file /etc/mtrxcerts/fullchain.pem --reloadcmd "systemctl reload nginx.service"
 
