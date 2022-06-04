@@ -31,10 +31,8 @@ alias acme.sh="/root/.acme.sh/acme.sh"
 shopt -s expand_aliases
 acme.sh  --register-account  -m test@gmail.com --server zerossl
 
-iptables -D INPUT -p tcp -m tcp --dport 80 -j ACCEPT
-iptables -D INPUT -p tcp -m tcp --dport 443 -j ACCEPT
-sudo iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
-sudo iptables -I INPUT -p tcp -m tcp --dport 443 -j ACCEPT
+sudo iptables -S INPUT -p tcp -m tcp --dport 80 -j ACCEPT || sudo iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+sudo iptables -S INPUT -p tcp -m tcp --dport 443 -j ACCEPT || sudo iptables -I INPUT -p tcp -m tcp --dport 443 -j ACCEPT
 sudo /sbin/iptables-save
 
 acme.sh --issue -d $DOMAIN --webroot /var/www/html
