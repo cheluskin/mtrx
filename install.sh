@@ -35,7 +35,7 @@ sudo iptables -S INPUT -p tcp -m tcp --dport 80 -j ACCEPT || sudo iptables -I IN
 sudo iptables -S INPUT -p tcp -m tcp --dport 443 -j ACCEPT || sudo iptables -I INPUT -p tcp -m tcp --dport 443 -j ACCEPT
 sudo /sbin/iptables-save
 
-acme.sh --issue -d $DOMAIN --webroot /var/www/html
+acme.sh --issue -d $DOMAIN --renew --webroot /var/www/html
 mkdir -p /etc/mtrxcerts/
 acme.sh --install-cert -d $DOMAIN --key-file /etc/mtrxcerts/key.pem --fullchain-file /etc/mtrxcerts/fullchain.pem --reloadcmd "systemctl reload nginx.service"
 
