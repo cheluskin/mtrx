@@ -39,4 +39,8 @@ acme.sh --issue -d $DOMAIN --webroot /var/www/html
 mkdir -p /etc/mtrxcerts/
 acme.sh --install-cert -d $DOMAIN --key-file /etc/mtrxcerts/key.pem --fullchain-file /etc/mtrxcerts/fullchain.pem --reloadcmd "systemctl reload nginx.service"
 
-sudo apt install -y matrix-synapse-py3 libpq5
+sudo apt install -y wget apt-transport-https
+sudo wget -O /usr/share/keyrings/element-io-archive-keyring.gpg https://packages.element.io/debian/element-io-archive-keyring.gpg
+echo "deb [signed-by=/usr/share/keyrings/element-io-archive-keyring.gpg] https://packages.element.io/debian/ default main" | sudo tee /etc/apt/sources.list.d/element-io.list
+sudo apt update
+sudo apt install -y matrix-synapse-py3 libpq5 element-desktop
