@@ -39,8 +39,128 @@ acme.sh --issue -d $DOMAIN --force --webroot /var/www/html
 mkdir -p /etc/mtrxcerts/
 acme.sh --install-cert -d $DOMAIN --key-file /etc/mtrxcerts/key.pem --fullchain-file /etc/mtrxcerts/fullchain.pem --reloadcmd "systemctl reload nginx.service"
 
+mkdir -p /etc/nginx/dhparams 
+openssl dhparam -out /etc/nginx/dhparams/dhparams.pem 4096
+
 sudo apt install -y wget apt-transport-https
 sudo wget -O /usr/share/keyrings/element-io-archive-keyring.gpg https://packages.element.io/debian/element-io-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/element-io-archive-keyring.gpg] https://packages.element.io/debian/ default main" | sudo tee /etc/apt/sources.list.d/element-io.list
 sudo apt update
-sudo apt install -y matrix-synapse-py3 libpq5 element-desktop
+sudo apt install -y matrix-synapse-py3 libpq5
+cd /var/www/html
+sudo wget https://github.com/vector-im/element-web/releases/download/v1.10.14-rc.1/element-v1.10.14-rc.1.tar.gz
+sudo tar -xzvf element-v1.10.14-rc.1.tar.gz
+cd element-v1.10.14-rc.1
+cp -rf * ..
+rm -rf *
+cd ..
+rm -rf rm -rf element-v1.10.14-rc.1
+rm -f element-v1.10.14-rc.1.tar.gz
+
+cat > /var/www/html/config.json <<EOF
+{
+    "default_server_config": {
+        "m.homeserver": {
+            "base_url": "https://$DOMAIN",
+            "server_name": "$DOMAIN"
+        },
+        "m.identity_server": {}
+    },
+    "disable_custom_urls": false,
+    "disable_guests": false,
+    "disable_login_language_selector": false,
+    "disable_3pid_login": false,
+    "brand": "Element",
+    "integrations_ui_url": "https://scalar.vector.im/",
+    "integrations_rest_url": "https://scalar.vector.im/api",
+    "integrations_widgets_urls": [
+        "https://scalar.vector.im/_matrix/integrations/v1",
+        "https://scalar.vector.im/api",
+        "https://scalar-staging.vector.im/_matrix/integrations/v1",
+        "https://scalar-staging.vector.im/api",
+        "https://scalar-staging.riot.im/scalar/api"
+    ],
+    "bug_report_endpoint_url": "https://element.io/bugreports/submit",
+    "uisi_autorageshake_app": "element-auto-uisi",
+    "default_country_code": "RU",
+    "show_labs_settings": false,
+    "features": { },
+    "default_federate": false,
+    "default_theme": "light",
+    "room_directory": {
+        "servers": [
+            "$DOMAIN"
+        ]
+    },
+    "enable_presence_by_hs_url": {
+        "https://matrix.org": false,
+        "https://matrix-client.matrix.org": false
+    },
+    "setting_defaults": {
+        "breadcrumbs": true
+    },
+    "jitsi": {
+        "preferred_domain": "meet.element.io"
+    },
+    "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx"
+}
+EOF
+
+cat > /etc/nginx/conf.d/mtrx.conf <<EOF
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+
+    server_name $DOMAIN;
+
+    ssl_certificate /etc/mtrxcerts/fullchain.pem;
+    ssl_certificate_key /etc/mtrxcerts/key.pem;
+
+    ssl_session_cache shared:SSL:20m;
+    ssl_session_timeout 60m;
+    ssl_prefer_server_ciphers on;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+
+    location / {
+        add_header X-Frame-Options SAMEORIGIN;
+        add_header X-Content-Type-Options nosniff;
+        add_header X-XSS-Protection "1; mode=block";
+        add_header Content-Security-Policy "frame-ancestors 'none'";
+        root /var/www/html;
+        index index.html;
+
+    }
+
+    location ~ ^(/_matrix|/_synapse/client) {
+        proxy_pass http://localhost:8008;
+        proxy_set_header X-Forwarded-For \$remote_addr;
+        proxy_set_header X-Forwarded-Proto\$scheme;
+        proxy_set_header Host \$host;
+        client_max_body_size 50M;
+    }
+}
+EOF
+
+cat > /etc/matrix-synapse/conf.d/mtrx.yaml <<EOF
+database:
+  name: psycopg2
+  args:
+    user: synapse_user
+    password: synapse_password
+    database: synapse
+    host: localhost
+
+federation_domain_whitelist: []
+allow_public_rooms_without_auth: false
+allow_public_rooms_over_federation: false
+
+EOF
+
+cat > /etc/matrix-synapse/conf.d/server_name.yaml <<EOF
+server_name: $DOMAIN
+
+EOF
+
+
+
+
