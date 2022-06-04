@@ -32,7 +32,7 @@ shopt -s expand_aliases
 acme.sh  --register-account  -m test@gmail.com --server zerossl
 sudo iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
 sudo iptables -I INPUT -p tcp -m tcp --dport 443 -j ACCEPT
-sudo service iptables save
+sudo /sbin/iptables-save
 
 acme.sh --issue -d $DOMAIN --webroot /var/www/html
 mkdir -p /etc/mtrxcerts/
