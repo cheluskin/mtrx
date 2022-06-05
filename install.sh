@@ -120,6 +120,7 @@ server {
     ssl_session_timeout 60m;
     ssl_prefer_server_ciphers on;
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_dhparam /etc/nginx/dhparams/dhparams.pem;
 
     location / {
         add_header X-Frame-Options SAMEORIGIN;
@@ -134,7 +135,7 @@ server {
     location ~ ^(/_matrix|/_synapse/client) {
         proxy_pass http://localhost:8008;
         proxy_set_header X-Forwarded-For \$remote_addr;
-        proxy_set_header X-Forwarded-Proto\$scheme;
+        proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_set_header Host \$host;
         client_max_body_size 50M;
     }
