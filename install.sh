@@ -161,6 +161,10 @@ server_name: $DOMAIN
 
 EOF
 
-
+sudo apt install -yq postgresql postgresql-contrib
+sudo -u postgres bash -c "psql -c \"DROP ROLE IF EXISTS synapse_user;\""
+sudo -u postgres bash -c "psql -c \"CREATE USER synapse_user WITH PASSWORD 'synapse_password';\""
+sudo -u postgres bash -c "psql -c \"DROP DATABASE IF EXISTS synapse;\""
+sudo -u postgres bash -c "psql -c \"CREATE DATABASE synapse WITH OWNER synapse_user LOCALE 'C' ENCODING 'UTF8';\""
 
 
