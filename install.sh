@@ -142,6 +142,8 @@ server {
 }
 EOF
 
+SECRET=$(openssl rand -hex 18)
+
 cat > /etc/matrix-synapse/conf.d/mtrx.yaml <<EOF
 database:
   name: psycopg2
@@ -154,6 +156,7 @@ database:
 federation_domain_whitelist: []
 allow_public_rooms_without_auth: false
 allow_public_rooms_over_federation: false
+registration_shared_secret: "$SECRET"
 
 EOF
 
@@ -163,9 +166,28 @@ server_name: $DOMAIN
 EOF
 
 sudo apt install -yq postgresql postgresql-contrib
-sudo -u postgres bash -c "psql -c \"DROP ROLE IF EXISTS synapse_user;\""
-sudo -u postgres bash -c "psql -c \"CREATE USER synapse_user WITH PASSWORD 'synapse_password';\""
-sudo -u postgres bash -c "psql -c \"DROP DATABASE IF EXISTS synapse;\""
-sudo -u postgres bash -c "psql -c \"CREATE DATABASE synapse WITH OWNER synapse_user LOCALE 'C' ENCODING 'UTF8';\""
+
+sudo -Hiu postgres bash -c "psql -c \"CREATE USER synapse_user WITH PASSWORD 'synapse_password';\""
+sudo -Hiu postgres bash -c "psql -c \"CREATE DATABASE synapse WITH OWNER synapse_user LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0 ENCODING 'UTF8';\""
+
+cat > /etc/postgresql/12/main/pg_hba.conf <<EOF
+local   all             all                                     trust
+host    all             all             127.0.0.1/32            md5
+host    all             all             ::1/128                 md5
+EOF
+
+sudo systemctl restart postgresql
+sudo systemctl restart matrix-synapse
+
+PASSWORD=$(openssl rand -hex 12)
+
+
+/usr/bin/register_new_matrix_user -u root -p $PASSWORD -a -c /etc/matrix-synapse/homeserver.yaml http://localhost:8008
+echo $PASSWORD
+echo $SECRET
+
+
+
+
 
 
