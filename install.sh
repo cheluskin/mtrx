@@ -31,22 +31,22 @@ alias acme.sh="/root/.acme.sh/acme.sh"
 shopt -s expand_aliases
 acme.sh  --register-account  -m test@gmail.com --server zerossl
 
-sudo iptables -S INPUT -p tcp -m tcp --dport 80 -j ACCEPT || sudo iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
-sudo iptables -S INPUT -p tcp -m tcp --dport 443 -j ACCEPT || sudo iptables -I INPUT -p tcp -m tcp --dport 443 -j ACCEPT
-sudo /sbin/iptables-save
+sudo iptables -I INPUT -p tcp -m tcp --dport 80 -j ACCEPT
+sudo iptables -I INPUT -p tcp -m tcp --dport 443 -j ACCEPT
+sudo /sbin/iptables-save > /etc/iptables/rules.v4
 
 acme.sh --issue -d $DOMAIN --force --webroot /var/www/html
 mkdir -p /etc/mtrxcerts/
 acme.sh --install-cert -d $DOMAIN --key-file /etc/mtrxcerts/key.pem --fullchain-file /etc/mtrxcerts/fullchain.pem --reloadcmd "systemctl reload nginx.service"
 
 mkdir -p /etc/nginx/dhparams 
-openssl dhparam -out /etc/nginx/dhparams/dhparams.pem 4096
+openssl dhparam -dsaparam -out /etc/nginx/dhparams/dhparams.pem 4096
 
 sudo apt install -y wget apt-transport-https
 sudo wget -O /usr/share/keyrings/element-io-archive-keyring.gpg https://packages.element.io/debian/element-io-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/element-io-archive-keyring.gpg] https://packages.element.io/debian/ default main" | sudo tee /etc/apt/sources.list.d/element-io.list
 sudo apt update
-sudo apt install -y matrix-synapse-py3 libpq5
+sudo apt install -yq matrix-synapse-py3 libpq5
 cd /var/www/html
 sudo wget https://github.com/vector-im/element-web/releases/download/v1.10.14-rc.1/element-v1.10.14-rc.1.tar.gz
 sudo tar -xzvf element-v1.10.14-rc.1.tar.gz
