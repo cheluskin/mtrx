@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 export DEBIAN_FRONTEND=noninteractive
+sudo apt update -yq
 sudo apt install dnsutils iputils-ping -yq
 
 if [[ $# -eq 0 ]] ; then
@@ -195,7 +196,6 @@ PASSWORD=$(openssl rand -hex 12)
 /usr/bin/register_new_matrix_user -u root -p $PASSWORD -a -c /etc/matrix-synapse/conf.d/mtrx.yaml http://localhost:8008
 echo user root
 echo password $PASSWORD
-echo \n
 echo /usr/bin/register_new_matrix_user -u username -p userpassword -c /etc/matrix-synapse/conf.d/mtrx.yaml http://localhost:8008
 
 
