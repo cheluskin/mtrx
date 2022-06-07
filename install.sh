@@ -188,6 +188,7 @@ EOF
 
 sudo systemctl restart postgresql
 sudo systemctl restart matrix-synapse
+sudo systemctl restart nginx
 
 PASSWORD=$(openssl rand -hex 12)
 
