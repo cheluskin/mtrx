@@ -67,7 +67,7 @@ cat > /var/www/html/config.json <<EOF
         "m.identity_server": {}
     },
     "disable_custom_urls": false,
-    "disable_guests": false,
+    "disable_guests": true,
     "disable_login_language_selector": false,
     "disable_3pid_login": false,
     "brand": "Element",
@@ -86,7 +86,7 @@ cat > /var/www/html/config.json <<EOF
     "show_labs_settings": false,
     "features": { },
     "default_federate": false,
-    "default_theme": "light",
+    "default_theme": "dark",
     "room_directory": {
         "servers": [
             "$DOMAIN"
@@ -102,7 +102,8 @@ cat > /var/www/html/config.json <<EOF
     "jitsi": {
         "preferred_domain": "meet.element.io"
     },
-    "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx"
+    "map_style_url": "https://api.maptiler.com/maps/streets/style.json?key=fU3vlMsMn4Jb6dnEIFsx",
+    "permalinkPrefix": "https://$DOMAIN"
 }
 EOF
 
@@ -166,7 +167,9 @@ server_name: $DOMAIN
 EOF
 
 sudo apt install -yq postgresql postgresql-contrib
-
+sudo systemctl restart postgresql
+sudo -Hiu postgres bash -c "psql -c \"DROP database IF EXISTS synapse;\""
+sudo -Hiu postgres bash -c "psql -c \"DROP USER IF EXISTS synapse_user;\""
 sudo -Hiu postgres bash -c "psql -c \"CREATE USER synapse_user WITH PASSWORD 'synapse_password';\""
 sudo -Hiu postgres bash -c "psql -c \"CREATE DATABASE synapse WITH OWNER synapse_user LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0 ENCODING 'UTF8';\""
 
@@ -182,9 +185,11 @@ sudo systemctl restart matrix-synapse
 PASSWORD=$(openssl rand -hex 12)
 
 
-/usr/bin/register_new_matrix_user -u root -p $PASSWORD -a -c /etc/matrix-synapse/homeserver.yaml http://localhost:8008
-echo $PASSWORD
-echo $SECRET
+/usr/bin/register_new_matrix_user -u root -p $PASSWORD -a -c /etc/matrix-synapse/conf.d/mtrx.yaml http://localhost:8008
+echo user root
+echo password $PASSWORD
+echo \n
+echo /usr/bin/register_new_matrix_user -u username -p userpassword -c /etc/matrix-synapse/conf.d/mtrx.yaml http://localhost:8008
 
 
 
