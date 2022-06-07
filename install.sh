@@ -180,7 +180,7 @@ sudo -Hiu postgres bash -c "psql -c \"DROP USER IF EXISTS synapse_user;\""
 sudo -Hiu postgres bash -c "psql -c \"CREATE USER synapse_user WITH PASSWORD 'synapse_password';\""
 sudo -Hiu postgres bash -c "psql -c \"CREATE DATABASE synapse WITH OWNER synapse_user LC_COLLATE 'C' LC_CTYPE 'C' TEMPLATE template0 ENCODING 'UTF8';\""
 
-cat > sudo -Hiu postgres bash -c "psql -t -P format=unaligned -c 'show hba_file';" <<EOF
+cat > $(sudo -Hiu postgres bash -c "psql -t -P format=unaligned -c 'show hba_file';") <<EOF
 local   all             all                                     trust
 host    all             all             127.0.0.1/32            md5
 host    all             all             ::1/128                 md5
