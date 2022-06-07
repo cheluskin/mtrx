@@ -119,9 +119,16 @@ server {
 
     ssl_session_cache shared:SSL:20m;
     ssl_session_timeout 60m;
-    ssl_prefer_server_ciphers on;
+    
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
     ssl_dhparam /etc/nginx/dhparams/dhparams.pem;
+
+    ssl_ciphers EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH;
+    ssl_prefer_server_ciphers on;
+    server_tokens off;
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    ssl_trusted_certificate /etc/mtrxcerts/fullchain.pem;
 
     location / {
         add_header X-Frame-Options SAMEORIGIN;
@@ -183,7 +190,6 @@ sudo systemctl restart postgresql
 sudo systemctl restart matrix-synapse
 
 PASSWORD=$(openssl rand -hex 12)
-
 
 /usr/bin/register_new_matrix_user -u root -p $PASSWORD -a -c /etc/matrix-synapse/conf.d/mtrx.yaml http://localhost:8008
 echo user root
