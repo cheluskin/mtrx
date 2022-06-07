@@ -46,7 +46,7 @@ sudo apt install -y wget apt-transport-https
 sudo wget -O /usr/share/keyrings/element-io-archive-keyring.gpg https://packages.element.io/debian/element-io-archive-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/element-io-archive-keyring.gpg] https://packages.element.io/debian/ default main" | sudo tee /etc/apt/sources.list.d/element-io.list
 sudo apt update
-sudo apt install -yq matrix-synapse-py3 libpq5
+sudo DEBIAN_FRONTEND=noninteractive apt-get install -yq matrix-synapse-py3 libpq5
 cd /var/www/html
 sudo wget https://github.com/vector-im/element-web/releases/download/v1.10.14-rc.1/element-v1.10.14-rc.1.tar.gz
 sudo tar -xzvf element-v1.10.14-rc.1.tar.gz
